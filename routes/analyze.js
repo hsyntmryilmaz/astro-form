@@ -3,6 +3,7 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const { analyzeWithAI } = require('../services/openai');
+const { analyzeWithZAI } = require('../services/zai');
 const { saveUserData } = require('../services/database');
 
 const router = express.Router();
@@ -58,16 +59,33 @@ router.post('/analyze', upload.fields([
     const handImagePath = req.files && req.files.handImage ? 
       req.files.handImage[0].path : null;
     
-    // Analyze with AI
-    const analysisResult = await analyzeWithAI({
-      firstName,
-      lastName,
-      birthDate,
-      birthTime,
-      birthPlace,
-      faceImagePath,
-      handImagePath
-    });
+    // Determine which AI model to use based on environment variable
+    const aiModel = process.env.AI_MODEL || '1';
+    let analysisResult;
+    
+    if (aiModel === '2') {
+      // Use z.ai model
+      analysisResult = await analyzeWithZAI({
+        firstName,
+        lastName,
+        birthDate,
+        birthTime,
+        birthPlace,
+        faceImagePath,
+        handImagePath
+      });
+    } else {
+      // Use OpenAI GPT-4o model (default)
+      analysisResult = await analyzeWithAI({
+        firstName,
+        lastName,
+        birthDate,
+        birthTime,
+        birthPlace,
+        faceImagePath,
+        handImagePath
+      });
+    }
     
     // Save to database
     const userData = {
