@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
   "name": "astro-form-analyzer",
   "version": "1.0.0",
@@ -15,4 +16,23 @@
     "dotenv": "^16.3.1",
     "@supabase/supabase-js": "^2.38.0"
   }
+=======
+{
+  "name": "astro-form-analyzer",
+  "version": "1.0.0",
+  "description": "Astro-Form-Analyzer - Collects user birth information and photos, sends to ChatGPT 4o API for personal analysis",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "openai": "^4.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "@supabase/supabase-js": "^2.38.0"
+  }
+>>>>>>> 4939126ee5c953624a0df2c93b0c18153fd12173
 }

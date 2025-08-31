@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Dependencies
 node_modules/
 
@@ -16,4 +17,24 @@ node_modules/
 
 # OS
 .DS_Store
+=======
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+
+# Logs
+*.log
+
+# Database
+*.db
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+>>>>>>> 4939126ee5c953624a0df2c93b0c18153fd12173
 Thumbs.db
