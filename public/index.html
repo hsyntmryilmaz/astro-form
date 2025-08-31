@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Astro-Form-Analyzer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .file-input {
+            padding: 10px 0;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #e9f7ef;
+            border-radius: 5px;
+            display: none;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+        .loading {
+            text-align: center;
+            display: none;
+        }
+        .user-info {
+            background-color: #f0f8ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .analysis-result {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .analysis-text {
+            margin-bottom: 15px;
+            line-height: 1.6;
+            text-align: justify;
+        }
+        .model-info {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #ddd;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Astro-Form-Analyzer</h1>
+        <form id="astroForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="firstName">Ad *</label>
+                <input type="text" id="firstName" name="firstName" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="lastName">Soyad *</label>
+                <input type="text" id="lastName" name="lastName" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="birthDate">Doğum Tarihi *</label>
+                <input type="date" id="birthDate" name="birthDate" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="birthTime">Doğum Saati *</label>
+                <input type="time" id="birthTime" name="birthTime" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="birthPlace">Doğum Yeri *</label>
+                <input type="text" id="birthPlace" name="birthPlace" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="faceImage">Yüz Fotoğrafı</label>
+                <div class="file-input">
+                    <input type="file" id="faceImage" name="faceImage" accept="image/*">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="handImage">El (Avuç İçi) Fotoğrafı</label>
+                <div class="file-input">
+                    <input type="file" id="handImage" name="handImage" accept="image/*">
+                </div>
+            </div>
+            
+            <button type="submit">Analiz Et</button>
+        </form>
+        
+        <div class="loading" id="loading">
+            <p>Analiz yapılıyor, lütfen bekleyin...</p>
+        </div>
+        
+        <div class="error" id="error"></div>
+        
+        <div class="result" id="result">
+            <h2>Analiz Sonuçları</h2>
+            <div id="resultContent"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('astroForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Show loading, hide previous results/errors
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('result').style.display = 'none';
+            
+            // Create FormData object
+            const formData = new FormData(this);
+            
+            try {
+                // Send request to API
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+                
+                if (response.ok) {
+                    // Redirect to the report page if available
+                    if (data.reportUrl) {
+                        window.location.href = data.reportUrl;
+                    } else {
+                        // Fallback to displaying result in a more readable format
+                        const analysisResult = typeof data.data.analysis_result === 'string' 
+                            ? JSON.parse(data.data.analysis_result) 
+                            : data.data.analysis_result;
+                        
+                        let analysisContent = '';
+                        if (analysisResult.analysis) {
+                            // If it's the new format from OpenAI service
+                            analysisContent = `<div class="analysis-text">${analysisResult.analysis.replace(/\n/g, '</div><div class="analysis-text">')}</div>`;
+                        } else {
+                            // If it's a raw string or other format
+                            analysisContent = `<div class="analysis-text">${(analysisResult || '').replace(/\n/g, '</div><div class="analysis-text">')}</div>`;
+                        }
+                        
+                        document.getElementById('resultContent').innerHTML = `
+                            <div class="user-info">
+                                <h3>Kullanıcı Bilgileri</h3>
+                                <p><strong>Ad:</strong> ${data.data.first_name} ${data.data.last_name}</p>
+                                <p><strong>Doğum Tarihi:</strong> ${data.data.birth_date}</p>
+                                <p><strong>Doğum Saati:</strong> ${data.data.birth_time}</p>
+                                <p><strong>Doğum Yeri:</strong> ${data.data.birth_place}</p>
+                            </div>
+                            <div class="analysis-result">
+                                <h3>Analiz Sonucu</h3>
+                                ${analysisContent}
+                                <div class="model-info">
+                                    <p><strong>Model:</strong> ${analysisResult.model || 'GPT-4o'}</p>
+                                    <p><strong>Tarih:</strong> ${analysisResult.timestamp ? new Date(analysisResult.timestamp).toLocaleString('tr-TR') : new Date().toLocaleString('tr-TR')}</p>
+                                </div>
+                            </div>
+                        `;
+                        document.getElementById('result').style.display = 'block';
+                    }
+                } else {
+                    // Display error
+                    document.getElementById('error').textContent = data.error || 'Bir hata oluştu';
+                    document.getElementById('error').style.display = 'block';
+                }
+            } catch (error) {
+                // Hide loading and show error
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').textContent = 'Bağlantı hatası: ' + error.message;
+                document.getElementById('error').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
